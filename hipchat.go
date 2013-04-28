@@ -2,7 +2,7 @@ package hipchat
 
 import (
 	"errors"
-	"hipchat/xmpp"
+	"github.com/daneharrigan/hipchat/xmpp"
 	"time"
 )
 
