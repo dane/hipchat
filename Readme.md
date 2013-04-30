@@ -1,6 +1,6 @@
 # hipchat
 
-This is a abstraction to Hipchat's implementation of XMPP. It communicates over
+This is a abstraction in golang to Hipchat's implementation of XMPP. It communicates over
 TLS and requires zero knowledge of XML or the XMPP protocol.
 
 * Examples [available here][1]
