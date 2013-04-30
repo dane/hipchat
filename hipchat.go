@@ -198,9 +198,6 @@ func (c *Client) listen() {
 		case "message" + xmpp.NsJabberClient:
 			attr := xmpp.ToMap(element.Attr)
 			if attr["type"] != "groupchat" {
-				for k, v := range attr {
-					println(k + ": " + v)
-				}
 				continue
 			}
 
