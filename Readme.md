@@ -6,6 +6,10 @@ TLS and requires zero knowledge of XML or the XMPP protocol.
 * Examples [available here][1]
 * Documentation [available here][2]
 
+### bot building
+
+Hipchat treats the "bot" resource differently from any other resource connected to their service. When connecting to Hipchat with a resource of "bot", a chat history will not be sent. Any other resource will receive a chat history.
+
 ### example/hello.go
 
 ```go
