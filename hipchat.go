@@ -3,6 +3,8 @@ package hipchat
 import (
 	"errors"
 	"github.com/daneharrigan/hipchat/xmpp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,6 +33,7 @@ type Client struct {
 type Message struct {
 	From        string
 	To          string
+	Time        time.Time
 	Body        string
 	MentionName string
 }
@@ -201,9 +204,14 @@ func (c *Client) listen() {
 				continue
 			}
 
+			// parse time
+			time_pieces := strings.Split(attr["ts"], ".")
+			sec, _ := strconv.ParseInt(time_pieces[0], 10, 64)
+
 			c.receivedMessage <- &Message{
 				From: attr["from"],
 				To:   attr["to"],
+				Time: time.Unix(sec, 0),
 				Body: c.connection.Body(),
 			}
 		}
