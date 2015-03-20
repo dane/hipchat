@@ -2,8 +2,9 @@ package hipchat
 
 import (
 	"errors"
-	"github.com/daneharrigan/hipchat/xmpp"
 	"time"
+
+	"github.com/daneharrigan/hipchat/xmpp"
 )
 
 var (
@@ -197,7 +198,7 @@ func (c *Client) listen() {
 			}
 		case "message" + xmpp.NsJabberClient:
 			attr := xmpp.ToMap(element.Attr)
-			if attr["type"] != "groupchat" {
+			if attr["type"] != "groupchat" && attr["type"] != "chat" {
 				continue
 			}
 
