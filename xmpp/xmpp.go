@@ -104,6 +104,7 @@ func (c *Conn) Next() (xml.StartElement, error) {
 			if element.Name.Local == "" {
 				return element, errors.New("invalid xml response")
 			}
+
 			return element, nil
 		}
 	}
@@ -135,8 +136,12 @@ func (c *Conn) MUCPresence(roomId, jid string) {
 }
 
 func (c *Conn) MUCSend(to, from, body string) {
+	// Default message type to groupchat, which will send a
+	// message to a room
 	messageType := "groupchat"
 	if strings.HasSuffix(to, "@chat.hipchat.com") {
+		// if the to string ends with @chat.hipchat.com, we're being asked to
+		// send to a user, so change message type to chat
 		messageType = "chat"
 	}
 	fmt.Fprintf(c.outgoing, xmlMUCMessage, from, id(), to, messageType, html.EscapeString(body))
@@ -169,6 +174,7 @@ func ToMap(attr []xml.Attr) map[string]string {
 	for _, a := range attr {
 		m[a.Name.Local] = a.Value
 	}
+
 	return m
 }
 
