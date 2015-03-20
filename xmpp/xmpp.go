@@ -9,6 +9,7 @@ import (
 	"html"
 	"io"
 	"net"
+	"strings"
 )
 
 const (
@@ -26,7 +27,7 @@ const (
 	xmlIqGet       = "<iq from='%s' to='%s' id='%s' type='get'><query xmlns='%s'/></iq>"
 	xmlPresence    = "<presence from='%s'><show>%s</show></presence>"
 	xmlMUCPresence = "<presence id='%s' to='%s' from='%s'><x xmlns='%s'/></presence>"
-	xmlMUCMessage  = "<message from='%s' id='%s' to='%s' type='groupchat'><body>%s</body></message>"
+	xmlMUCMessage  = "<message from='%s' id='%s' to='%s' type='%s'><body>%s</body></message>"
 )
 
 type required struct{}
@@ -103,7 +104,6 @@ func (c *Conn) Next() (xml.StartElement, error) {
 			if element.Name.Local == "" {
 				return element, errors.New("invalid xml response")
 			}
-
 			return element, nil
 		}
 	}
@@ -135,7 +135,11 @@ func (c *Conn) MUCPresence(roomId, jid string) {
 }
 
 func (c *Conn) MUCSend(to, from, body string) {
-	fmt.Fprintf(c.outgoing, xmlMUCMessage, from, id(), to, html.EscapeString(body))
+	messageType := "groupchat"
+	if strings.HasSuffix(to, "@chat.hipchat.com") {
+		messageType = "chat"
+	}
+	fmt.Fprintf(c.outgoing, xmlMUCMessage, from, id(), to, messageType, html.EscapeString(body))
 }
 
 func (c *Conn) Roster(from, to string) {
@@ -165,7 +169,6 @@ func ToMap(attr []xml.Attr) map[string]string {
 	for _, a := range attr {
 		m[a.Name.Local] = a.Value
 	}
-
 	return m
 }
 
