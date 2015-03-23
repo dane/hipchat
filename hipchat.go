@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/daneharrigan/hipchat/xmpp"
+	"github.com/cjhubert/hipchat/xmpp"
 )
 
 var (

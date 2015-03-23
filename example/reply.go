@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"strings"
-	"github.com/daneharrigan/hipchat"
+
+	"github.com/cjhubert/hipchat"
 )
 
 func main() {
