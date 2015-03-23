@@ -9,6 +9,7 @@ import (
 	"html"
 	"io"
 	"net"
+	"strings"
 )
 
 const (
@@ -26,7 +27,7 @@ const (
 	xmlIqGet       = "<iq from='%s' to='%s' id='%s' type='get'><query xmlns='%s'/></iq>"
 	xmlPresence    = "<presence from='%s'><show>%s</show></presence>"
 	xmlMUCPresence = "<presence id='%s' to='%s' from='%s'><x xmlns='%s'/></presence>"
-	xmlMUCMessage  = "<message from='%s' id='%s' to='%s' type='groupchat'><body>%s</body></message>"
+	xmlMUCMessage  = "<message from='%s' id='%s' to='%s' type='%s'><body>%s</body></message>"
 )
 
 type required struct{}
@@ -135,7 +136,15 @@ func (c *Conn) MUCPresence(roomId, jid string) {
 }
 
 func (c *Conn) MUCSend(to, from, body string) {
-	fmt.Fprintf(c.outgoing, xmlMUCMessage, from, id(), to, html.EscapeString(body))
+	// Default message type to groupchat, which will send a
+	// message to a room
+	messageType := "groupchat"
+	if strings.HasSuffix(to, "@chat.hipchat.com") {
+		// if the to string ends with @chat.hipchat.com, we're being asked to
+		// send to a user, so change message type to chat
+		messageType = "chat"
+	}
+	fmt.Fprintf(c.outgoing, xmlMUCMessage, from, id(), to, messageType, html.EscapeString(body))
 }
 
 func (c *Conn) Roster(from, to string) {
