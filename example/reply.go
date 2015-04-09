@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+
 	"github.com/daneharrigan/hipchat"
 )
 
@@ -22,9 +23,16 @@ func main() {
 
 	client.Status("chat")
 	client.Join(roomJid, fullName)
-	for message := range client.Messages() {
-		if strings.HasPrefix(message.Body, "@"+mentionName) {
-			client.Say(roomJid, fullName, "Hello")
+
+	go func() {
+		for {
+			select {
+			case message := <-client.Messages():
+				if strings.HasPrefix(message.Body, "@"+mentionName) {
+					client.Say(roomJid, fullName, "Hello")
+				}
+			}
 		}
-	}
+	}()
+	select {}
 }

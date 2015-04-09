@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/daneharrigan/hipchat"
 )
 
@@ -16,17 +17,15 @@ func main() {
 		return
 	}
 
-	var fullName string
-	var mentionName string
+	client.RequestUsers()
 
-	for _, user := range client.Users() {
-		if user.Id == client.Id {
-			fullName = user.Name
-			mentionName = user.MentionName
-			break
+	select {
+	case users := <-client.Users():
+		for _, user := range users {
+			if user.Id == client.Id {
+				fmt.Printf("name: %s\n", user.Name)
+				fmt.Printf("mention: %s\n", user.MentionName)
+			}
 		}
 	}
-
-	fmt.Printf("name: %s\n", fullName)
-	fmt.Printf("mention: %s\n", mentionName)
 }
