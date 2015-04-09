@@ -2,8 +2,9 @@ package hipchat
 
 import (
 	"errors"
-	"github.com/daneharrigan/hipchat/xmpp"
 	"time"
+
+	"github.com/daneharrigan/hipchat/xmpp"
 )
 
 var (
@@ -87,16 +88,14 @@ func (c *Client) Messages() <-chan *Message {
 	return c.receivedMessage
 }
 
-// Rooms returns an slice of Room structs.
-func (c *Client) Rooms() []*Room {
-	c.requestRooms()
-	return <-c.receivedRooms
+// Rooms returns a channel of Room slices
+func (c *Client) Rooms() <-chan []*Room {
+	return c.receivedRooms
 }
 
-// Users returns a slice of User structs.
-func (c *Client) Users() []*User {
-	c.requestUsers()
-	return <-c.receivedUsers
+// Users returns a channel of User slices
+func (c *Client) Users() <-chan []*User {
+	return c.receivedUsers
 }
 
 // Status sends a string to HipChat to indicate whether the client is available
@@ -126,11 +125,15 @@ func (c *Client) KeepAlive() {
 	}
 }
 
-func (c *Client) requestRooms() {
+// RequestRooms will send an outgoing request to get
+// the room information for all rooms
+func (c *Client) RequestRooms() {
 	c.connection.Discover(c.Id, conf)
 }
 
-func (c *Client) requestUsers() {
+// RequestUsers will send an outgoing request to get
+// the user information for all users
+func (c *Client) RequestUsers() {
 	c.connection.Roster(c.Id, host)
 }
 
