@@ -71,8 +71,8 @@ func (c *Conn) StartTLS() {
 	fmt.Fprintf(c.outgoing, xmlStartTLS, NsTLS)
 }
 
-func (c *Conn) UseTLS() {
-	c.outgoing = tls.Client(c.outgoing, &tls.Config{ServerName: "chat.hipchat.com"})
+func (c *Conn) UseTLS(host string) {
+	c.outgoing = tls.Client(c.outgoing, &tls.Config{ServerName: host})
 	c.incoming = xml.NewDecoder(c.outgoing)
 }
 
