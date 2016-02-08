@@ -120,7 +120,14 @@ func (c *Client) Say(roomId, name, body string) {
 // character to HipChat every 60 seconds. This keeps the connection from
 // idling after 150 seconds.
 func (c *Client) KeepAlive() {
-	for _ = range time.Tick(60 * time.Second) {
+	c.KeepAliveBy(60)
+}
+
+// KeepAlive is meant to run as a goroutine. It sends a single whitespace
+// character to HipChat every arbitrary seconds. This keeps the connection from
+// idling after 150 seconds.
+func (c *Client) KeepAliveBy(sec time.Duration) {
+	for _ = range time.Tick(sec * time.Second) {
 		c.connection.KeepAlive()
 	}
 }
