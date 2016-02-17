@@ -7,9 +7,9 @@ import (
 	"github.com/daneharrigan/hipchat/xmpp"
 )
 
-var (
-	host = "chat.hipchat.com"
-	conf = "conf.hipchat.com"
+const (
+	defaultHost = "chat.hipchat.com"
+	defaultConf = "conf.hipchat.com"
 )
 
 // A Client represents the connection between the application to the HipChat
@@ -26,6 +26,8 @@ type Client struct {
 	receivedUsers   chan []*User
 	receivedRooms   chan []*Room
 	receivedMessage chan *Message
+	host            string
+	conf            string
 }
 
 // A Message represents a message received from HipChat.
@@ -51,8 +53,14 @@ type Room struct {
 }
 
 // NewClient creates a new Client connection from the user name, password and
-// resource passed to it.
+// resource passed to it. It uses default host URL and conf URL.
 func NewClient(user, pass, resource string) (*Client, error) {
+	return NewClientWithServerInfo(user, pass, resource, defaultHost, defaultConf)
+}
+
+// NewClientWithServerInfo creates a new Client connection from the user name, password,
+// resource, host URL and conf URL passed to it.
+func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, error) {
 	connection, err := xmpp.Dial(host)
 
 	c := &Client{
@@ -67,6 +75,8 @@ func NewClient(user, pass, resource string) (*Client, error) {
 		receivedUsers:   make(chan []*User),
 		receivedRooms:   make(chan []*Room),
 		receivedMessage: make(chan *Message),
+		host:            host,
+		conf:            conf,
 	}
 
 	if err != nil {
@@ -128,17 +138,17 @@ func (c *Client) KeepAlive() {
 // RequestRooms will send an outgoing request to get
 // the room information for all rooms
 func (c *Client) RequestRooms() {
-	c.connection.Discover(c.Id, conf)
+	c.connection.Discover(c.Id, c.conf)
 }
 
 // RequestUsers will send an outgoing request to get
 // the user information for all users
 func (c *Client) RequestUsers() {
-	c.connection.Roster(c.Id, host)
+	c.connection.Roster(c.Id, c.host)
 }
 
 func (c *Client) authenticate() error {
-	c.connection.Stream(c.Id, host)
+	c.connection.Stream(c.Id, c.host)
 	for {
 		element, err := c.connection.Next()
 		if err != nil {
@@ -158,8 +168,8 @@ func (c *Client) authenticate() error {
 				}
 			}
 		case "proceed" + xmpp.NsTLS:
-			c.connection.UseTLS()
-			c.connection.Stream(c.Id, host)
+			c.connection.UseTLS(c.host)
+			c.connection.Stream(c.Id, c.host)
 		case "iq" + xmpp.NsJabberClient:
 			for _, attr := range element.Attr {
 				if attr.Name.Local == "type" && attr.Value == "result" {
