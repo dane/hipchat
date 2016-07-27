@@ -210,9 +210,6 @@ func (c *Client) listen() {
 			}
 		case "message" + xmpp.NsJabberClient:
 			attr := xmpp.ToMap(element.Attr)
-			if attr["type"] != "groupchat" {
-				continue
-			}
 
 			c.receivedMessage <- &Message{
 				From: attr["from"],
