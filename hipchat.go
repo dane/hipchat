@@ -120,6 +120,10 @@ func (c *Client) Join(roomId, resource string) {
 	c.connection.MUCPresence(roomId+"/"+resource, c.Id)
 }
 
+// Part accepts the room id to part.
+func (c *Client) Part(roomId, name string) {
+	c.connection.MUCPart(roomId+"/"+name)
+}
 // Say accepts a room id, the name of the client in the room, and the message
 // body and sends the message to the HipChat room.
 func (c *Client) Say(roomId, name, body string) {
