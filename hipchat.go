@@ -123,7 +123,14 @@ func (c *Client) Join(roomId, resource string) {
 // Say accepts a room id, the name of the client in the room, and the message
 // body and sends the message to the HipChat room.
 func (c *Client) Say(roomId, name, body string) {
-	c.connection.MUCSend(roomId, c.Id+"/"+name, body)
+	c.connection.MUCSend("groupchat", roomId, c.Id+"/"+name, body)
+}
+
+// PrivSay accepts a client id, the name of the client, and the message
+// body and sends the private message to the HipChat
+// user.
+func (c *Client) PrivSay(user, name, body string) {
+	c.connection.MUCSend("chat", user, c.Id+"/"+name, body)
 }
 
 // KeepAlive is meant to run as a goroutine. It sends a single whitespace
@@ -218,4 +225,5 @@ func (c *Client) listen() {
 			}
 		}
 	}
+	panic("unreachable")
 }
