@@ -26,7 +26,7 @@ const (
 	xmlIqGet       = "<iq from='%s' to='%s' id='%s' type='get'><query xmlns='%s'/></iq>"
 	xmlPresence    = "<presence from='%s'><show>%s</show></presence>"
 	xmlMUCPresence = "<presence id='%s' to='%s' from='%s'><x xmlns='%s'/></presence>"
-	xmlMUCMessage  = "<message from='%s' id='%s' to='%s' type='groupchat'><body>%s</body></message>"
+	xmlMUCMessage  = "<message from='%s' id='%s' to='%s' type='%s'><body>%s</body></message>"
 )
 
 type required struct{}
@@ -134,8 +134,8 @@ func (c *Conn) MUCPresence(roomId, jid string) {
 	fmt.Fprintf(c.outgoing, xmlMUCPresence, id(), roomId, jid, NsMuc)
 }
 
-func (c *Conn) MUCSend(to, from, body string) {
-	fmt.Fprintf(c.outgoing, xmlMUCMessage, from, id(), to, html.EscapeString(body))
+func (c *Conn) MUCSend(mtype, to, from, body string) {
+	fmt.Fprintf(c.outgoing, xmlMUCMessage, from, id(), to, mtype, html.EscapeString(body))
 }
 
 func (c *Conn) Roster(from, to string) {
