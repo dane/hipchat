@@ -1,6 +1,8 @@
 package hipchat
 
 import (
+	"bytes"
+	"encoding/xml"
 	"errors"
 	"time"
 
@@ -63,9 +65,14 @@ func NewClient(user, pass, resource string) (*Client, error) {
 func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, error) {
 	connection, err := xmpp.Dial(host)
 
+	var b bytes.Buffer
+	if err := xml.EscapeText(&b, []byte(pass)); err != nil {
+		return nil, err
+	}
+
 	c := &Client{
 		Username: user,
-		Password: pass,
+		Password: b.String(),
 		Resource: resource,
 		Id:       user + "@" + host,
 
