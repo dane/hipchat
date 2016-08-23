@@ -39,9 +39,16 @@ type features struct {
 }
 
 type item struct {
-	Jid         string `xml:"jid,attr"`
-	Name        string `xml:"name,attr"`
-	MentionName string `xml:"mention_name,attr"`
+	Email           string `xml:"email,attr"`
+	Jid             string `xml:"jid,attr"`
+	LastActive      string `xml:"x>last_active"`
+	MentionName     string `xml:"mention_name,attr"`
+	Name            string `xml:"name,attr"`
+	NumParticipants string `xml:"x>num_participants"`
+	Owner           string `xml:"x>owner"`
+	Privacy         string `xml:"x>privacy"`
+	RoomId          string `xml:"x>id"`
+	Topic           string `xml:"x>topic"`
 }
 
 type query struct {

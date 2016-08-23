@@ -42,6 +42,7 @@ type Message struct {
 
 // A User represents a member of the HipChat service.
 type User struct {
+	Email       string
 	Id          string
 	Name        string
 	MentionName string
@@ -50,8 +51,14 @@ type User struct {
 // A Room represents a room in HipChat the Client can join to communicate with
 // other members..
 type Room struct {
-	Id   string
-	Name string
+	Id              string
+	LastActive      string
+	Name            string
+	NumParticipants string
+	Owner           string
+	Privacy         string
+	RoomId          string
+	Topic           string
 }
 
 // NewClient creates a new Client connection from the user name, password and
@@ -216,13 +223,25 @@ func (c *Client) listen() {
 			case xmpp.NsDisco:
 				items := make([]*Room, len(query.Items))
 				for i, item := range query.Items {
-					items[i] = &Room{Id: item.Jid, Name: item.Name}
+					items[i] = &Room{Id: item.Jid,
+						LastActive:      item.LastActive,
+						NumParticipants: item.NumParticipants,
+						Name:            item.Name,
+						Owner:           item.Owner,
+						Privacy:         item.Privacy,
+						RoomId:          item.RoomId,
+						Topic:           item.Topic,
+					}
 				}
 				c.receivedRooms <- items
 			case xmpp.NsIqRoster:
 				items := make([]*User, len(query.Items))
 				for i, item := range query.Items {
-					items[i] = &User{Id: item.Jid, Name: item.Name, MentionName: item.MentionName}
+					items[i] = &User{Email: item.Email,
+						Id:          item.Jid,
+						Name:        item.Name,
+						MentionName: item.MentionName,
+					}
 				}
 				c.receivedUsers <- items
 			}
