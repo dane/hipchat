@@ -77,13 +77,13 @@ func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, 
 		Id:       user + "@" + host,
 
 		// private
-		connection:       connection,
-		mentionNames:     make(map[string]string),
-		receivedUsers:    make(chan []*User),
-		receivedRooms:    make(chan []*Room),
-		receivedMessage:  make(chan *Message),
-		host:             host,
-		conf:             conf,
+		connection:      connection,
+		mentionNames:    make(map[string]string),
+		receivedUsers:   make(chan []*User),
+		receivedRooms:   make(chan []*Room),
+		receivedMessage: make(chan *Message),
+		host:            host,
+		conf:            conf,
 	}
 
 	if err != nil {
