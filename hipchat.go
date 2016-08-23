@@ -224,24 +224,24 @@ func (c *Client) listen() {
 				items := make([]*Room, len(query.Items))
 				for i, item := range query.Items {
 					items[i] = &Room{Id: item.Jid,
-							LastActive: item.LastActive,
-							NumParticipants: item.NumParticipants,
-							Name: item.Name,
-							Owner: item.Owner,
-							Privacy: item.Privacy,
-							RoomId: item.RoomId,
-							Topic: item.Topic,
-							}
+						LastActive:      item.LastActive,
+						NumParticipants: item.NumParticipants,
+						Name:            item.Name,
+						Owner:           item.Owner,
+						Privacy:         item.Privacy,
+						RoomId:          item.RoomId,
+						Topic:           item.Topic,
+					}
 				}
 				c.receivedRooms <- items
 			case xmpp.NsIqRoster:
 				items := make([]*User, len(query.Items))
 				for i, item := range query.Items {
 					items[i] = &User{Email: item.Email,
-							Id: item.Jid,
-							Name: item.Name,
-							MentionName: item.MentionName,
-							}
+						Id:          item.Jid,
+						Name:        item.Name,
+						MentionName: item.MentionName,
+					}
 				}
 				c.receivedUsers <- items
 			}
