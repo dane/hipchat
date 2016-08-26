@@ -24,6 +24,8 @@ func main() {
 	client.Status("chat")
 	client.Join(roomJid, fullName)
 
+  go client.KeepAlive()
+
 	go func() {
 		for {
 			select {
