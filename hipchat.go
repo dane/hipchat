@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/daneharrigan/hipchat/xmpp"
+	"github.com/lusis/hipchat/xmpp"
 )
 
 const (
@@ -136,8 +136,9 @@ func (c *Client) Join(roomId, resource string) {
 
 // Part accepts the room id to part.
 func (c *Client) Part(roomId, name string) {
-	c.connection.MUCPart(roomId+"/"+name)
+	c.connection.MUCPart(roomId + "/" + name)
 }
+
 // Say accepts a room id, the name of the client in the room, and the message
 // body and sends the message to the HipChat room.
 func (c *Client) Say(roomId, name, body string) {
@@ -156,6 +157,15 @@ func (c *Client) PrivSay(user, name, body string) {
 // idling after 150 seconds.
 func (c *Client) KeepAlive() {
 	for _ = range time.Tick(60 * time.Second) {
+		c.connection.KeepAlive()
+	}
+}
+
+// KeepAlive is meant to run as a goroutine. It sends a single whitespace
+// character to HipChat every arbitrary seconds. This keeps the connection from
+// idling after 150 seconds.
+func (c *Client) KeepAliveBy(sec time.Duration) {
+	for _ = range time.Tick(sec * time.Second) {
 		c.connection.KeepAlive()
 	}
 }
