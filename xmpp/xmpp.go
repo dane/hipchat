@@ -51,7 +51,7 @@ type item struct {
 	Topic           string `xml:"x>topic"`
 }
 
-type ack struct {
+type Ack struct {
 	Ack string `xml:"a"`
 }
 
@@ -115,7 +115,6 @@ func (c *Conn) Next() (xml.StartElement, error) {
 			if element.Name.Local == "" {
 				return element, errors.New("invalid xml response")
 			}
-
 			return element, nil
 		}
 	}

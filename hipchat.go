@@ -28,6 +28,7 @@ type Client struct {
 	receivedUsers   chan []*User
 	receivedRooms   chan []*Room
 	receivedMessage chan *Message
+	unhandledEvent  chan *xml.StartElement
 	host            string
 	conf            string
 }
@@ -89,6 +90,7 @@ func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, 
 		receivedUsers:   make(chan []*User),
 		receivedRooms:   make(chan []*Room),
 		receivedMessage: make(chan *Message),
+		unhandledEvent:  make(chan *xml.StartElement),
 		host:            host,
 		conf:            conf,
 	}
@@ -104,6 +106,12 @@ func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, 
 
 	go c.listen()
 	return c, nil
+}
+
+// UnhandledEvents returns a channel of xml.StartElement for
+// dealing with events that this library doesn't handle
+func (c *Client) UnhandledEvents() <-chan *xml.StartElement {
+	return c.unhandledEvent
 }
 
 // Messages returns a read-only channel of Message structs. After joining a
@@ -263,6 +271,8 @@ func (c *Client) listen() {
 				To:   attr["to"],
 				Body: c.connection.Body(),
 			}
+		default:
+			c.unhandledEvent <- &element
 		}
 	}
 	panic("unreachable")
