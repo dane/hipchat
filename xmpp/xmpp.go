@@ -51,6 +51,10 @@ type item struct {
 	Topic           string `xml:"x>topic"`
 }
 
+type ack struct {
+	Ack string `xml:"a"`
+}
+
 type query struct {
 	XMLName xml.Name `xml:"query"`
 	Items   []*item  `xml:"item"`
@@ -155,7 +159,7 @@ func (c *Conn) Roster(from, to string) {
 }
 
 func (c *Conn) KeepAlive() {
-	fmt.Fprintf(c.outgoing, " ")
+	fmt.Fprintf(c.outgoing, "<r/>")
 }
 
 func Dial(host string) (*Conn, error) {
