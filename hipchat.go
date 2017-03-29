@@ -165,7 +165,10 @@ func (c *Client) PrivSay(user, name, body string) {
 // idling after 150 seconds.
 func (c *Client) KeepAlive() {
 	for _ = range time.Tick(60 * time.Second) {
-		c.connection.KeepAlive()
+		err := c.connection.KeepAlive()
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -174,7 +177,10 @@ func (c *Client) KeepAlive() {
 // idling after 150 seconds.
 func (c *Client) KeepAliveBy(sec time.Duration) {
 	for _ = range time.Tick(sec * time.Second) {
-		c.connection.KeepAlive()
+		err := c.connection.KeepAlive()
+		if err != nil {
+			return
+		}
 	}
 }
 

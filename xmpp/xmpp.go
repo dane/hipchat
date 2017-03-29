@@ -157,8 +157,15 @@ func (c *Conn) Roster(from, to string) {
 	fmt.Fprintf(c.outgoing, xmlIqGet, from, to, id(), NsIqRoster)
 }
 
-func (c *Conn) KeepAlive() {
-	fmt.Fprintf(c.outgoing, "<r/>")
+// KeepAlive sets a keepalive
+// we exit here to allow for handling of cases where we can't write to the xmpp server
+// so the user can decide
+func (c *Conn) KeepAlive() error {
+	_, err := fmt.Fprintf(c.outgoing, "<r/>")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func Dial(host string) (*Conn, error) {
