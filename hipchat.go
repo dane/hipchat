@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	defaultHost = "chat.hipchat.com"
-	defaultConf = "conf.hipchat.com"
 	defaultAuthType = "plain" // or "oauth"
+	defaultConf     = "conf.hipchat.com"
+	defaultDomain   = "chat.hipchat.com"
+	defaultHost     = "chat.hipchat.com"
 )
 
 // A Client represents the connection between the application to the HipChat
@@ -31,6 +32,7 @@ type Client struct {
 	receivedRooms   chan []*Room
 	receivedMessage chan *Message
 	host            string
+	domain          string
 	conf            string
 }
 
@@ -66,12 +68,12 @@ type Room struct {
 // NewClient creates a new Client connection from the user name, password and
 // resource passed to it. It uses default host URL and conf URL.
 func NewClient(user, pass, resource, authType string) (*Client, error) {
-	return NewClientWithServerInfo(user, pass, resource, authType, defaultHost, defaultConf)
+	return NewClientWithServerInfo(user, pass, resource, authType, defaultHost, defaultDomain, defaultConf)
 }
 
 // NewClientWithServerInfo creates a new Client connection from the user name, password,
 // resource, host URL and conf URL passed to it.
-func NewClientWithServerInfo(user, pass, resource, authType, host, conf string) (*Client, error) {
+func NewClientWithServerInfo(user, pass, resource, authType, host, domain, conf string) (*Client, error) {
 	connection, err := xmpp.Dial(host)
 
 	var b bytes.Buffer
@@ -84,7 +86,7 @@ func NewClientWithServerInfo(user, pass, resource, authType, host, conf string) 
 		Username: user,
 		Password: b.String(),
 		Resource: resource,
-		Id:       user + "@" + host,
+		Id:       user + "@" + domain,
 
 		// private
 		connection:      connection,
@@ -93,6 +95,7 @@ func NewClientWithServerInfo(user, pass, resource, authType, host, conf string) 
 		receivedRooms:   make(chan []*Room),
 		receivedMessage: make(chan *Message),
 		host:            host,
+		domain:          domain,
 		conf:            conf,
 	}
 
@@ -139,8 +142,9 @@ func (c *Client) Join(roomId, resource string) {
 
 // Part accepts the room id to part.
 func (c *Client) Part(roomId, name string) {
-	c.connection.MUCPart(roomId+"/"+name)
+	c.connection.MUCPart(roomId + "/" + name)
 }
+
 // Say accepts a room id, the name of the client in the room, and the message
 // body and sends the message to the HipChat room.
 func (c *Client) Say(roomId, name, body string) {
@@ -172,7 +176,7 @@ func (c *Client) RequestRooms() {
 // RequestUsers will send an outgoing request to get
 // the user information for all users
 func (c *Client) RequestUsers() {
-	c.connection.Roster(c.Id, c.host)
+	c.connection.Roster(c.Id, c.domain)
 }
 
 func (c *Client) authenticate() error {
