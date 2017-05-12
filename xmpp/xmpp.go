@@ -3,6 +3,7 @@ package xmpp
 import (
 	"crypto/rand"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ const (
 	NsStream       = "http://etherx.jabber.org/streams"
 	NsIqAuth       = "jabber:iq:auth"
 	NsIqRoster     = "jabber:iq:roster"
+	NsSASL         = "urn:ietf:params:xml:ns:xmpp-sasl"
 	NsTLS          = "urn:ietf:params:xml:ns:xmpp-tls"
 	NsDisco        = "http://jabber.org/protocol/disco#items"
 	NsMuc          = "http://jabber.org/protocol/muc"
@@ -24,6 +26,7 @@ const (
 	xmlStartTLS    = "<starttls xmlns='%s'/>"
 	xmlIqSet       = "<iq type='set' id='%s'><query xmlns='%s'><username>%s</username><password>%s</password><resource>%s</resource></query></iq>"
 	xmlIqGet       = "<iq from='%s' to='%s' id='%s' type='get'><query xmlns='%s'/></iq>"
+	xmlOauth       = "<auth xmlns='http://hipchat.com' ver='22' mechanism='oauth2'>%s</auth>"
 	xmlPresence    = "<presence from='%s'><show>%s</show></presence>"
 	xmlMUCPart     = "<presence to='%s' type='unavailable'></presence>"
 	xmlMUCPresence = "<presence id='%s' to='%s' from='%s'><x xmlns='%s'/></presence>"
@@ -33,6 +36,7 @@ const (
 type required struct{}
 
 type features struct {
+	Auth       xml.Name  `xml:"auth"`
 	XMLName    xml.Name  `xml:"features"`
 	StartTLS   *required `xml:"starttls>required"`
 	Mechanisms []string  `xml:"mechanisms>mechanism"`
@@ -88,6 +92,12 @@ func (c *Conn) Auth(user, pass, resource string) {
 	fmt.Fprintf(c.outgoing, xmlIqSet, id(), NsIqAuth, user, pass, resource)
 }
 
+func (c *Conn) Oauth(token, resource string) {
+	msg := "\x00" + token + "\x00" + resource
+	b64 := base64.StdEncoding.EncodeToString([]byte(msg))
+	fmt.Fprintf(c.outgoing, xmlOauth, b64)
+}
+
 func (c *Conn) Features() *features {
 	var f features
 	c.incoming.DecodeElement(&f, nil)
@@ -95,9 +105,9 @@ func (c *Conn) Features() *features {
 }
 
 func (c *Conn) Next() (xml.StartElement, error) {
+	for {
 	var element xml.StartElement
 
-	for {
 		var err error
 		var t xml.Token
 		t, err = c.incoming.Token()

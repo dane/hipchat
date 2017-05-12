@@ -12,11 +12,13 @@ import (
 const (
 	defaultHost = "chat.hipchat.com"
 	defaultConf = "conf.hipchat.com"
+	defaultAuthType = "plain" // or "oauth"
 )
 
 // A Client represents the connection between the application to the HipChat
 // service.
 type Client struct {
+	AuthType string
 	Username string
 	Password string
 	Resource string
@@ -63,13 +65,13 @@ type Room struct {
 
 // NewClient creates a new Client connection from the user name, password and
 // resource passed to it. It uses default host URL and conf URL.
-func NewClient(user, pass, resource string) (*Client, error) {
-	return NewClientWithServerInfo(user, pass, resource, defaultHost, defaultConf)
+func NewClient(user, pass, resource, authType string) (*Client, error) {
+	return NewClientWithServerInfo(user, pass, resource, authType, defaultHost, defaultConf)
 }
 
 // NewClientWithServerInfo creates a new Client connection from the user name, password,
 // resource, host URL and conf URL passed to it.
-func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, error) {
+func NewClientWithServerInfo(user, pass, resource, authType, host, conf string) (*Client, error) {
 	connection, err := xmpp.Dial(host)
 
 	var b bytes.Buffer
@@ -78,6 +80,7 @@ func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, 
 	}
 
 	c := &Client{
+		AuthType: authType,
 		Username: user,
 		Password: b.String(),
 		Resource: resource,
@@ -173,6 +176,7 @@ func (c *Client) RequestUsers() {
 }
 
 func (c *Client) authenticate() error {
+	var errStr string
 	c.connection.Stream(c.Id, c.host)
 	for {
 		element, err := c.connection.Next()
@@ -187,8 +191,10 @@ func (c *Client) authenticate() error {
 				c.connection.StartTLS()
 			} else {
 				for _, m := range features.Mechanisms {
-					if m == "PLAIN" {
+					if m == "PLAIN"  && c.AuthType == "plain" {
 						c.connection.Auth(c.Username, c.Password, c.Resource)
+					} else if m == "X-HIPCHAT-OAUTH2" && c.AuthType == "oauth" {
+						c.connection.Oauth(c.Password, c.Resource)
 					}
 				}
 			}
@@ -201,8 +207,18 @@ func (c *Client) authenticate() error {
 					return nil // authenticated
 				}
 			}
-
 			return errors.New("could not authenticate")
+
+		// oauth:
+		case "failure" + xmpp.NsSASL:
+			errStr = "Unable to authenticate:"
+		case "invalid-authzid" + xmpp.NsSASL:
+			errStr += " no identity provided"
+		case "not-authorized" + xmpp.NsSASL:
+			errStr += " token not authorized"
+			return errors.New(errStr)
+		case "success" + xmpp.NsSASL:
+			return nil
 		}
 	}
 
