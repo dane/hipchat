@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/daneharrigan/hipchat/xmpp"
+	"github.com/lusis/hipchat/xmpp"
 )
 
 const (
@@ -31,6 +31,7 @@ type Client struct {
 	receivedUsers   chan []*User
 	receivedRooms   chan []*Room
 	receivedMessage chan *Message
+	unhandledEvent  chan *xml.StartElement
 	host            string
 	domain          string
 	conf            string
@@ -94,6 +95,7 @@ func NewClientWithServerInfo(user, pass, resource, authType, host, domain, conf 
 		receivedUsers:   make(chan []*User),
 		receivedRooms:   make(chan []*Room),
 		receivedMessage: make(chan *Message),
+		unhandledEvent:  make(chan *xml.StartElement),
 		host:            host,
 		domain:          domain,
 		conf:            conf,
@@ -110,6 +112,12 @@ func NewClientWithServerInfo(user, pass, resource, authType, host, domain, conf 
 
 	go c.listen()
 	return c, nil
+}
+
+// UnhandledEvents returns a channel of xml.StartElement for
+// dealing with events that this library doesn't handle
+func (c *Client) UnhandledEvents() <-chan *xml.StartElement {
+	return c.unhandledEvent
 }
 
 // Messages returns a read-only channel of Message structs. After joining a
@@ -163,7 +171,22 @@ func (c *Client) PrivSay(user, name, body string) {
 // idling after 150 seconds.
 func (c *Client) KeepAlive() {
 	for _ = range time.Tick(60 * time.Second) {
-		c.connection.KeepAlive()
+		err := c.connection.KeepAlive()
+		if err != nil {
+			return
+		}
+	}
+}
+
+// KeepAlive is meant to run as a goroutine. It sends a single whitespace
+// character to HipChat every arbitrary seconds. This keeps the connection from
+// idling after 150 seconds.
+func (c *Client) KeepAliveBy(sec time.Duration) {
+	for _ = range time.Tick(sec * time.Second) {
+		err := c.connection.KeepAlive()
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -273,6 +296,8 @@ func (c *Client) listen() {
 				To:   attr["to"],
 				Body: c.connection.Body(),
 			}
+		default:
+			c.unhandledEvent <- &element
 		}
 	}
 	panic("unreachable")

@@ -55,6 +55,10 @@ type item struct {
 	Topic           string `xml:"x>topic"`
 }
 
+type Ack struct {
+	Ack string `xml:"a"`
+}
+
 type query struct {
 	XMLName xml.Name `xml:"query"`
 	Items   []*item  `xml:"item"`
@@ -121,7 +125,6 @@ func (c *Conn) Next() (xml.StartElement, error) {
 			if element.Name.Local == "" {
 				return element, errors.New("invalid xml response")
 			}
-
 			return element, nil
 		}
 	}
@@ -164,8 +167,15 @@ func (c *Conn) Roster(from, to string) {
 	fmt.Fprintf(c.outgoing, xmlIqGet, from, to, id(), NsIqRoster)
 }
 
-func (c *Conn) KeepAlive() {
-	fmt.Fprintf(c.outgoing, " ")
+// KeepAlive sets a keepalive
+// we exit here to allow for handling of cases where we can't write to the xmpp server
+// so the user can decide
+func (c *Conn) KeepAlive() error {
+	_, err := fmt.Fprintf(c.outgoing, "<r/>")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func Dial(host string) (*Conn, error) {
