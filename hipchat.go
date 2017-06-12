@@ -21,6 +21,7 @@ type Client struct {
 	Password string
 	Resource string
 	Id       string
+	XMPPConn *xmpp.Conn
 
 	// private
 	mentionNames    map[string]string
@@ -72,7 +73,9 @@ func NewClient(user, pass, resource string) (*Client, error) {
 // resource, host URL and conf URL passed to it.
 func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, error) {
 	connection, err := xmpp.Dial(host)
-
+	if err != nil {
+		return nil, err
+	}
 	var b bytes.Buffer
 	if err := xml.EscapeText(&b, []byte(pass)); err != nil {
 		return nil, err
@@ -83,6 +86,7 @@ func NewClientWithServerInfo(user, pass, resource, host, conf string) (*Client, 
 		Password: b.String(),
 		Resource: resource,
 		Id:       user + "@" + host,
+		XMPPConn: connection,
 
 		// private
 		connection:      connection,
@@ -164,7 +168,7 @@ func (c *Client) PrivSay(user, name, body string) {
 // character to HipChat every 60 seconds. This keeps the connection from
 // idling after 150 seconds.
 func (c *Client) KeepAlive() {
-	for _ = range time.Tick(60 * time.Second) {
+	for range time.Tick(60 * time.Second) {
 		err := c.connection.KeepAlive()
 		if err != nil {
 			return
@@ -172,11 +176,11 @@ func (c *Client) KeepAlive() {
 	}
 }
 
-// KeepAlive is meant to run as a goroutine. It sends a single whitespace
+// KeepAliveBy is meant to run as a goroutine. It sends a single whitespace
 // character to HipChat every arbitrary seconds. This keeps the connection from
 // idling after 150 seconds.
 func (c *Client) KeepAliveBy(sec time.Duration) {
-	for _ = range time.Tick(sec * time.Second) {
+	for range time.Tick(sec * time.Second) {
 		err := c.connection.KeepAlive()
 		if err != nil {
 			return
