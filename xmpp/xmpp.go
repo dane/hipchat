@@ -99,9 +99,9 @@ func (c *Conn) Features() *features {
 }
 
 func (c *Conn) Next() (xml.StartElement, error) {
-	var element xml.StartElement
 
 	for {
+		var element xml.StartElement
 		var err error
 		var t xml.Token
 		t, err = c.incoming.Token()
