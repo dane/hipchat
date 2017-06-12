@@ -161,7 +161,7 @@ func (c *Conn) Roster(from, to string) {
 // we exit here to allow for handling of cases where we can't write to the xmpp server
 // so the user can decide
 func (c *Conn) KeepAlive() error {
-	_, err := fmt.Fprintf(c.outgoing, "<r/>")
+	_, err := fmt.Fprintf(c.outgoing, " ")
 	if err != nil {
 		return err
 	}
